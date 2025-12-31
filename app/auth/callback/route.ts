@@ -1,0 +1,21 @@
+import { createClient } from "@/utils/supabase/server";
+import { NextResponse } from "next/server";
+
+export async function GET(request: Request) {
+    // The `requestUrl` yields the full URL (including search params)
+    const requestUrl = new URL(request.url);
+    const code = requestUrl.searchParams.get("code");
+    // if "next" is in param, use it as the redirect URL
+    const next = requestUrl.searchParams.get("next") ?? "/dashboard";
+
+    if (code) {
+        const supabase = await createClient();
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+            return NextResponse.redirect(`${requestUrl.origin}${next}`);
+        }
+    }
+
+    // return the user to an error page with instructions
+    return NextResponse.redirect(`${requestUrl.origin}/login?error=auth-code-error`);
+}
