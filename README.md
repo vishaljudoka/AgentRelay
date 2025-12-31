@@ -16,6 +16,16 @@
 
 ---
 
+## ⚡ Quick Start Checklist
+
+1. **Create Supabase project**
+2. **Run SQL schema** (found in `docs/schema.sql`)
+3. **Copy .env.example → .env.local**
+4. **Start n8n workflow** (Required)
+5. `npm i && npm run dev`
+
+---
+
 ## 📋 Table of Contents
 
 - [Project Overview](#-project-overview)
@@ -193,7 +203,7 @@ Next.js App → n8n Webhook → Apify Crawler → OpenAI → Supabase
 
 1. **`n8n-workflow-backup.json`** - Sanitized workflow template (import to n8n)
 2. **`N8N_WORKFLOW_GUIDE.md`** - Complete setup instructions
-3. **`N8N_SECURITY_AUDIT.md`** - Security verification report
+3. **`docs/schema.sql`** - Database schema definitions
 
 ### 🚀 Quick Start
 
@@ -257,7 +267,9 @@ AgentRelay/
 ├── middleware.ts               # Route protection
 ├── .env.example                # Environment template
 ├── ARCHITECTURE_FLOW.md        # Security documentation
-├── SECURITY_AUDIT.md           # Security best practices
+├── docs/                   
+│   ├── schema.sql              # Database schema
+│   └── screenshots/            # Project screenshots
 └── README.md                   # This file
 ```
 
@@ -276,7 +288,7 @@ AgentRelay/
 #### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/agentrelay.git
+git clone https://github.com/vishaljudoka/AgentRelay.git
 cd agentrelay
 npm install
 ```
@@ -309,59 +321,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Run the following SQL in your Supabase SQL Editor:
 
-```sql
--- 1. Profiles Table
-CREATE TABLE public.profiles (
-  id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
-  email TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
--- 2. Jobs Table
-CREATE TABLE public.jobs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  topic TEXT NOT NULL,
-  input_config JSONB,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
-  output JSONB,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
-
--- 3. RLS Policies
-CREATE POLICY "Users view own profiles" 
-  ON public.profiles FOR SELECT 
-  USING (auth.uid() = id);
-
-CREATE POLICY "Users view own jobs" 
-  ON public.jobs FOR SELECT 
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "Users create own jobs" 
-  ON public.jobs FOR INSERT 
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users delete own jobs" 
-  ON public.jobs FOR DELETE 
-  USING (auth.uid() = user_id);
-
--- 4. Auto-create Profile Trigger
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.profiles (id, email)
-  VALUES (NEW.id, NEW.email);
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-```
+Run the SQL commands found in `docs/schema.sql` in your Supabase SQL Editor to set up the database tables, RLS policies, and triggers.
 
 #### 4. Run Development Server
 
@@ -406,7 +366,7 @@ Visit [http://localhost:3000](http://localhost:3000)
 - ✅ Environment variables properly configured
 - ✅ CORS configured for production domain
 
-See [SECURITY_AUDIT.md](./SECURITY_AUDIT.md) for comprehensive security documentation.
+See [ARCHITECTURE_FLOW.md](./ARCHITECTURE_FLOW.md) for detailed security concepts.
 
 ---
 
@@ -477,7 +437,7 @@ This architecture pattern is suitable for:
 ## 📚 Additional Documentation
 
 - [ARCHITECTURE_FLOW.md](./ARCHITECTURE_FLOW.md) - Detailed security flow analysis
-- [SECURITY_AUDIT.md](./SECURITY_AUDIT.md) - Security best practices guide
+- [ARCHITECTURE_FLOW.md](./ARCHITECTURE_FLOW.md) - Detailed security flow analysis
 
 ---
 
@@ -517,6 +477,6 @@ Perfect for:
 **Built with ❤️ as a DevOps Portfolio Project for AstraOps. 
 Implemented real project from this repo topicdigest.astraops.org**
 
-[Architecture Docs](./ARCHITECTURE_FLOW.md) • [Security Guide](./SECURITY_AUDIT.md)
+[Architecture Docs](./ARCHITECTURE_FLOW.md)
 
 </div>
